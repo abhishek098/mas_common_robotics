@@ -2,7 +2,7 @@
  * Software License Agreement (BSD License)
  *
  *  Author: Matthias Fueller (matthias.fueller@h-brs.de)
- *
+ *  Author: Abhishek Padalkar (abhishek.padalkar@smail.inf.h-brs.de)
  *  Copyright (c) 2013, Hochschule Bonn-Rhein-Sieg
  *  All rights reserved.
  *
@@ -43,38 +43,55 @@
 #ifndef ROS_ARM_CARTESIAN_CONTROL_H_
 #define ROS_ARM_CARTESIAN_CONTROL_H_
 
+#include <mcr_manipulation_utils/ros_urdf_loader.h>
+#include <mcr_arm_cartesian_control/arm_cartesian_control.h>
+
+#include <sensor_msgs/JointState.h>
+#include <kdl/kdl.hpp>
+#include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/Vector3Stamped.h>
+#include <ros/ros.h>
+#include <kdl/chainiksolvervel_wdls.hpp>
+#include <brics_actuator/JointVelocities.h>
+#include <tf/transform_listener.h>
+
+#include <std_msgs/MultiArrayLayout.h>
+#include <std_msgs/MultiArrayDimension.h>
+#include <std_msgs/Float32MultiArray.h>
+
+
 class RosArmCartesianControl
 {
-protected:
+public:
 
-    KDL::Chain g_arm_chain;
+    KDL::Chain arm_chain;
+    std::vector<boost::shared_ptr<urdf::JointLimits> > joint_limits;
 
-    std::vector<boost::shared_ptr<urdf::JointLimits> > g_joint_limits;
+    KDL::JntArray joint_positions;
+    std::vector<bool> joint_positions_initialized;
 
-    KDL::JntArray g_joint_positions;
-
-    std::vector<bool> g_joint_positions_initialized;
+    Eigen::VectorXd sigma;
 
     KDL::Twist targetVelocity;
 
     KDL::ChainIkSolverVel* ik_solver;
-
     Eigen::MatrixXd weight_ts;
-
     Eigen::MatrixXd weight_js;
 
     ros::Publisher cmd_vel_publisher;
+    ros::Publisher sigma_publisher;
 
     tf::TransformListener *tf_listener;
 
     bool active = false;
-
     ros::Time t_last_command;
 
     brics_actuator::JointVelocities jointMsg;
 
+    std::string root_name = "DEFAULT_CHAIN_ROOT";
+    bool use_float_array_msg = false;
+    int nrOfJoints;
 
-public:
     RosArmCartesianControl();
     virtual ~RosArmCartesianControl();
 
@@ -87,6 +104,8 @@ public:
     void init_joint_msgs();
 
     void publishJointVelocities(KDL::JntArrayVel& joint_velocities);
+
+    void publishJointVelocities_FA(KDL::JntArrayVel& joint_velocities);
 
     void wtsCallback(std_msgs::Float32MultiArray weights);
 

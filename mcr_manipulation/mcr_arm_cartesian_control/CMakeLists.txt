@@ -29,6 +29,7 @@ include_directories(
 
 add_executable(arm_cartesian_control
   ros/src/arm_cartesian_control_node.cpp
+  ros/src/ros_arm_cartesian_control.cpp
   common/src/arm_cartesian_control.cpp)
     
 target_link_libraries(arm_cartesian_control
